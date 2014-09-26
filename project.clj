@@ -8,10 +8,12 @@
                                   [org.clojure/clojurescript "0.0-2202"]]
                    :plugins [[lein-cljsbuild "1.0.3"]
                              [com.cemerick/clojurescript.test "0.3.1"]]
-                   :hooks [leiningen.cljsbuild]
 
                    :cljsbuild {:builds [{:id "test"
                                          :source-paths ["src" "test"]
                                          :compiler {:optimizations :whitespace
                                                     :output-to "target/test.js"}}]
-                               :test-commands {"test" ["phantomjs" :runner "target/test.js"]}}}})
+                               :test-commands {"test" ["phantomjs" :runner "target/test.js"]}}}}
+
+  :aliases {"test"      ["cljsbuild" "test"]
+            "cleantest" ["do" ["cljsbuild" "clean"] ["cljsbuild" "test"]]})
