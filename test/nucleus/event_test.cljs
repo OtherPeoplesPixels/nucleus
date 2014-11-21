@@ -1,39 +1,45 @@
-(ns opp.nucleus.event-test
-  (:require-macros [cemerick.cljs.test :refer (is deftest done)])
-  (:require [cemerick.cljs.test :as t]
-            [opp.nucleus.event :as event]))
+(ns nucleus.event-test
+  (:require-macros [cemerick.cljs.test :refer (is deftest testing)])
+  (:require [nucleus.test-helper :as h]
+            [nucleus.event :as event]
+            [cemerick.cljs.test])
+  (:import [goog.events Event BrowserEvent]))
 
+(deftest event-test
+  (let [target (h/create-element "div")
+        event (h/browser-event :click target)]
 
-;; Test Helpers
+    (is (satisfies? event/Event event))
+    (is (instance? BrowserEvent event))
+    (is (instance? Event event))
 
-(defn create-element [tag]
-  (js/document.createElement tag))
+    (testing "IFn"
+      (is (satisfies? IFn event))
+      (is (= target (event :current-target)))
+      (is (= target (event :currentTarget)))
+      (is (= target (event "currentTarget"))))
 
-(defn click! [el]
-  (let [event (doto (.createEvent js/document "MouseEvent")
-                (.initEvent "click" true true))]
-    (.dispatchEvent el event)))
+    (testing "ILookup"
+      (is (satisfies? ILookup event))
+      (is (= target (:current-target event)))
+      (is (= target (get event :current-target)))
+      (is (= target (get event :currentTarget)))
+      (is (= target (get event "currentTarget"))))
 
+    (testing "event properties"
+      (is (= "click" (event :type)))
+      ;;(is (= target (event :target)))
+      (is (= target (event :current-target)))
+      (is (not (:default-prevented event)))
+      (is (not (:propagation-stopped_ event))))
 
-;; Tests
+    ;; TODO:
+    ;; (testing "browser event properties")
 
-(deftest ^:async basic-test
-  (let [target (create-element "div")]
-    (event/listen! target :click
-      (fn [event]
-        (is (satisfies? IFn event))
-        (is (= "click" (event :type)))
-        (is (satisfies? ILookup event))
-        (is (= "click" (:type event)))
+    (testing "prevent-default"
+      (event/prevent-default! event)
+      (is (:default-prevented event)))
 
-        (is (= target (event "currentTarget")))
-        (is (= target (event :currentTarget)))
-        (is (= target (event :current-target)))
-        (is (= target (event :target)))
-
-        (is (not (:default-prevented event)))
-        (event/prevent-default! event)
-        (is (:default-prevented event))
-
-        (done)))
-    (click! target)))
+    (testing "stop-propagation"
+      (event/stop-propagation! event)
+      (is (:propagation-stopped_ event)))))
