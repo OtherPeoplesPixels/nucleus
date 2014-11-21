@@ -11,6 +11,9 @@
   (-prevent-default [event])
   (-stop-propagation [event]))
 
+;; TODO:
+;; (defprotocol BrowserEvent)
+
 (defprotocol EventListener
   (-listener-id [this])
   (-listener-fn [this]))
@@ -95,23 +98,26 @@
   (if (coll? type)
     (doseq [t type]
       (-listen target (keyword t) listener opts))
-    (-listen target (keyword type) listener opts)))
+    (-listen target (keyword type) listener opts))
+  nil)
 
 (defn- unlisten*
   [target type listener opts]
   (if (coll? type)
     (doseq [t type]
       (-listen target (keyword t) listener opts))
-    (-unlisten target (keyword type) listener opts)))
+    (-unlisten target (keyword type) listener opts))
+  nil)
 
 (defn listen!
-  "Add an event listener. See target implementaiton for supported options."
+  "Add an event listener. Returns nil. See target implementaiton for supported
+  options."
   ([target type listener & opts]
      (listen* target type listener opts)))
 
 (defn unlisten!
-  "Remove an event listener added with listen. See target implementaiton for
-  supported options."
+  "Remove an event listener added with listen. Returns nil. See target
+  implementaiton for supported options."
   ([target type listener & opts]
      (unlisten* target type listener opts)))
 
