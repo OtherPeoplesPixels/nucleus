@@ -105,7 +105,7 @@
   [target type listener opts]
   (if (coll? type)
     (doseq [t type]
-      (-listen target (keyword t) listener opts))
+      (-unlisten target (keyword t) listener opts))
     (-unlisten target (keyword type) listener opts))
   nil)
 

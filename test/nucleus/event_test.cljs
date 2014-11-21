@@ -43,3 +43,31 @@
     (testing "stop-propagation"
       (event/stop-propagation! event)
       (is (:propagation-stopped_ event)))))
+
+
+(deftest event-target-test
+  (let [target (h/create-element "div")]
+    (is (satisfies? event/EventTarget target))
+    (let [f (fn [event])]
+      (is (= 0 (count @event/listeners-map))
+          "no listeners have been added yet")
+
+      (testing "listen!"
+        (event/listen! target :foo f)
+        (event/listen! target :foo f)
+        (is (= 1 (count @event/listeners-map))
+            "listener can only be added once for type")
+        (event/listen! target :bar f)
+        (is (= 2 (count @event/listeners-map))
+            "listener can be added for multiple types")
+        (event/listen! target #{:foo :bar :baz} f)
+        (is (= 3 (count @event/listeners-map))
+            "listener can be added for multiple types at once"))
+
+      (testing "unlisten!"
+        (event/unlisten! target :bar f)
+        (is (= 2 (count @event/listeners-map))
+            "listener can be removed for a single type")
+        (event/unlisten! target #{:foo :bar :baz} f)
+        (is (= 0 (count @event/listeners-map))
+            "listener can be removed for multiple types at once")))))
