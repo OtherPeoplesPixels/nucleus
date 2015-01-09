@@ -1,5 +1,6 @@
 (ns nucleus.event.impl
   (:require [nucleus.event.proto :as proto]
+            [plumbing.core :refer (dissoc-in)]
             [goog.events :as gevt]
             [goog.object :as gobj]
             [goog.string :as gstr]))
@@ -37,35 +38,37 @@
 
 ;; # EventTarget
 
-;; A mapping of argument vectors to goog event listener keys. This is used to
-;; prevent multiple listeners with the same identity from being added to the
-;; same target.
-(def ^:private listeners-map (atom {}))
+;; A map used to track goog.event listener keys for each target by type. This is
+;; used to prevent multiple listeners with the same identity from being added to
+;; the same target and type.
+(def ^:private listener-map (atom {}))
 
-(defn- add-listener
-  [token target type f]
-  (when-not (contains? @listeners-map token)
-    (let [key (gevt/listen target (name type) f)]
-      (swap! listeners-map assoc token key))))
+;; Internal listener count used for testing.
+(def ^:internal listener-count 0)
 
-(defn- make-token
-  [target type listener]
-  [(goog/getUid target)
-   (keyword type)
-   (proto/-listener-id listener)])
+(defn- listener-map-ks
+  ([target type]
+     [(goog/getUid target) (keyword type)])
+  ([target type listener]
+     (conj (listener-map-ks target type)
+           (proto/-listener-id listener))))
 
 (extend-protocol proto/EventTarget
   default ;js/EventTarget gevt/EventTarget gevt/Listenable
-  (-listen [target type listener opts]
-    (let [token (make-token target type listener)
-          f (proto/-listener-fn listener)]
-      (add-listener token target type f)))
+  (-listen [target type listener _]
+    (let [ks (listener-map-ks target type listener)]
+      (when-not (get-in @listener-map ks)
+        (let [f (proto/-listener-fn listener)
+              k (gevt/listen target (name type) f)]
+          (swap! listener-map assoc-in ks k)
+          (set! listener-count (inc listener-count))))))
 
-  (-unlisten [target type listener opts]
-    (let [token (make-token target type listener)]
-      (when-let [key (get @listeners-map token)]
+  (-unlisten [target type listener _]
+    (let [ks (listener-map-ks target type listener)]
+      (when-let [key (get-in @listener-map ks)]
         (gevt/unlistenByKey key)
-        (swap! listeners-map dissoc token))))
+        (swap! listener-map dissoc-in ks)
+        (set! listener-count (dec listener-count)))))
 
   ;; See goog.events.EventLike
   (-build-event [target event-data]

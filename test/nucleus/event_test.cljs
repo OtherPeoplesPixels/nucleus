@@ -51,27 +51,27 @@
   (let [target (h/create-element "div")]
     (is (satisfies? proto/EventTarget target))
     (let [f (fn [event])]
-      (is (= 0 (count @impl/listeners-map))
+      (is (= 0 impl/listener-count)
           "no listeners have been added yet")
 
       (testing "listen!"
         (event/listen! target :foo f)
         (event/listen! target :foo f)
-        (is (= 1 (count @impl/listeners-map))
+        (is (= 1 impl/listener-count)
             "listener can only be added once for type")
         (event/listen! target :bar f)
-        (is (= 2 (count @impl/listeners-map))
+        (is (= 2 impl/listener-count)
             "listener can be added for multiple types")
         (event/listen! target #{:foo :bar :baz} f)
-        (is (= 3 (count @impl/listeners-map))
+        (is (= 3 impl/listener-count)
             "listener can be added for multiple types at once"))
 
       (testing "unlisten!"
         (event/unlisten! target :bar f)
-        (is (= 2 (count @impl/listeners-map))
+        (is (= 2 impl/listener-count)
             "listener can be removed for a single type")
         (event/unlisten! target #{:foo :bar :baz} f)
-        (is (= 0 (count @impl/listeners-map))
+        (is (= 0 impl/listener-count)
             "listener can be removed for multiple types at once")))))
 
 
