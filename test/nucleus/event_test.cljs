@@ -2,6 +2,8 @@
   (:require-macros [cemerick.cljs.test :refer (is deftest testing)])
   (:require [nucleus.test-helper :as h]
             [nucleus.event :as event]
+            [nucleus.event.proto :as proto]
+            [nucleus.event.impl :as impl]
             [cemerick.cljs.test])
   (:import [goog.events Event BrowserEvent]))
 
@@ -9,7 +11,7 @@
   (let [target (h/create-element "div")
         event (h/browser-event :click target)]
 
-    (is (satisfies? event/Event event))
+    (is (satisfies? proto/Event event))
     (is (instance? BrowserEvent event))
     (is (instance? Event event))
 
@@ -47,27 +49,53 @@
 
 (deftest event-target-test
   (let [target (h/create-element "div")]
-    (is (satisfies? event/EventTarget target))
+    (is (satisfies? proto/EventTarget target))
     (let [f (fn [event])]
-      (is (= 0 (count @event/listeners-map))
+      (is (= 0 (count @impl/listeners-map))
           "no listeners have been added yet")
 
       (testing "listen!"
         (event/listen! target :foo f)
         (event/listen! target :foo f)
-        (is (= 1 (count @event/listeners-map))
+        (is (= 1 (count @impl/listeners-map))
             "listener can only be added once for type")
         (event/listen! target :bar f)
-        (is (= 2 (count @event/listeners-map))
+        (is (= 2 (count @impl/listeners-map))
             "listener can be added for multiple types")
         (event/listen! target #{:foo :bar :baz} f)
-        (is (= 3 (count @event/listeners-map))
+        (is (= 3 (count @impl/listeners-map))
             "listener can be added for multiple types at once"))
 
       (testing "unlisten!"
         (event/unlisten! target :bar f)
-        (is (= 2 (count @event/listeners-map))
+        (is (= 2 (count @impl/listeners-map))
             "listener can be removed for a single type")
         (event/unlisten! target #{:foo :bar :baz} f)
-        (is (= 0 (count @event/listeners-map))
+        (is (= 0 (count @impl/listeners-map))
             "listener can be removed for multiple types at once")))))
+
+
+
+
+;; (deftest ^:async basic-test
+;;   (let [target (h/create-element "div")]
+;;     (event/listen! target :click
+;;       (fn [event]
+;;         (try (is (instance? BrowserEvent event))
+;;              (is (satisfies? IFn event))
+;;              (is (= "click" (event :type)))
+;;              (is (satisfies? ILookup event))
+;;              (is (= "click" (:type event)))
+
+;;              (is (= target (event "currentTarget")))
+;;              (is (= target (event :currentTarget)))
+;;              (is (= target (event :current-target)))
+;;              (is (= target (event :target)))
+
+;;              (is (not (:default-prevented event)))
+;;              (event/prevent-default! event)
+;;              (is (:default-prevented event))
+;;              (catch :default e
+;;                (done e)))
+;;         (done)))
+;;     (h/click! target)))
