@@ -133,13 +133,13 @@
 ;; A mapping of argument vectors to goog event listener keys. This is used to
 ;; prevent multiple listeners with the same identity from being added to the
 ;; same target.
-(def ^:private listeners (atom {}))
+(def ^:private listeners-map (atom {}))
 
 (defn- add-listener
   [token target type f]
-  (when-not (contains? @listeners token)
+  (when-not (contains? @listeners-map token)
     (let [key (gevt/listen target (name type) f)]
-      (swap! listeners assoc token key))))
+      (swap! listeners-map assoc token key))))
 
 (defn- make-token
   [target type listener]
@@ -156,9 +156,9 @@
 
   (-unlisten [target type listener opts]
     (let [token (make-token target type listener)]
-      (when-let [key (get @listeners token)]
+      (when-let [key (get @listeners-map token)]
         (gevt/unlistenByKey key)
-        (swap! listeners dissoc token))))
+        (swap! listeners-map dissoc token))))
 
   ;; See goog.events.EventLike
   (-build-event [target event-data]
