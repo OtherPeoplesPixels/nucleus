@@ -23,7 +23,7 @@
                                    :optimizations :whitespace
                                    :cache-analysis true}}]
 
-              :test-commands {"test" ["phantomjs" :runner "out-test/nucleus.js"]}}
+              :test-commands {"test" ["slimerjs" :runner "out-test/nucleus.js"]}}
 
   :aliases {"test"      ["cljsbuild" "test"]
             "cleantest" ["do" "clean" ["cljsbuild" "test"]]})
