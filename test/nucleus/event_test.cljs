@@ -11,7 +11,7 @@
   (let [target (h/create-element "div")
         event (h/browser-event :click target)]
 
-    (is (satisfies? proto/Event event))
+    (is (event/event? event))
     (is (instance? BrowserEvent event))
     (is (instance? Event event))
 
@@ -49,7 +49,9 @@
 
 (deftest event-target-test
   (let [target (h/create-element "div")]
-    (is (satisfies? proto/EventTarget target))
+
+    (is (event/event-target? target))
+
     (let [f (fn [event])]
       (is (= 0 impl/listener-count)
           "no listeners have been added yet")

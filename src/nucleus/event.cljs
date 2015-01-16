@@ -6,6 +6,9 @@
 
 ;; # Event
 
+(defn event? [x]
+  (satisfies? proto/Event x))
+
 (defn prevent-default!
   "Prevent the default browser action."
   [event]
@@ -18,6 +21,9 @@
 
 
 ;; # EventListener
+
+(defn event-listener? [x]
+  (satisfies? proto/EventListener x))
 
 (defn listener-id
   "Returns the event listener identity."
@@ -44,6 +50,9 @@
 
 
 ;; # EventTarget
+
+(defn event-target? [x]
+  (satisfies? proto/EventTarget x))
 
 (defn- listen*
   [target type listener opts]
