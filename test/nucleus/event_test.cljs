@@ -47,6 +47,22 @@
       (is (:propagation-stopped_ event)))))
 
 
+(deftest event-listener-test
+  (let [f (fn [event])]
+
+    (is (event/event-listener? f))
+
+    (is (= (event/listener-id f) f))
+    (is (= (event/listener-fn f) f))
+
+    (let [id ::listener-id
+          f1 (event/wrap-listener-id f id)]
+      (is (= (event/listener-id f1) id))
+      (is (= (event/listener-fn f1)
+             (event/listener-fn f)
+             f)))))
+
+
 (deftest event-target-test
   (let [target (h/create-element "div")]
 
@@ -75,9 +91,6 @@
         (event/unlisten! target #{:foo :bar :baz} f)
         (is (= 0 impl/listener-count)
             "listener can be removed for multiple types at once")))))
-
-
-
 
 ;; (deftest ^:async basic-test
 ;;   (let [target (h/create-element "div")]

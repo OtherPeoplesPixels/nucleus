@@ -35,18 +35,16 @@
   [listener]
   (proto/-listener-fn listener))
 
-
-;; ## FnEventListener
-
-;; (defn wrap-listener-id
-;;   [listener id]
-;;   (if (not= id (listener-id f))
-;;     (specify listener
-;;       proto/EventListener
-;;       (proto/-listener-id id)
-;;       (proto/-listener-fn
-;;         (proto/-listener-fn listener)))
-;;     listener))
+(defn wrap-listener-id
+  "Wraps an existing event-listener with the provided listener-id."
+  [listener id]
+  (if (not= id (listener-id listener))
+    (reify
+      proto/EventListener
+      (-listener-id [_] id)
+      (-listener-fn [_]
+        (proto/-listener-fn listener)))
+    listener))
 
 
 ;; # EventTarget
