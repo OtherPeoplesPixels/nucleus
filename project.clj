@@ -4,17 +4,26 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.6.0"]
-                                  [org.clojure/clojurescript "0.0-2202"]
-                                  [prismatic/plumbing "0.3.5"]]
-                   :plugins [[lein-cljsbuild "1.0.3"]
-                             [com.cemerick/clojurescript.test "0.3.1"]]
+  :dependencies [[org.clojure/clojure "1.6.0"]
+                 [org.clojure/clojurescript "0.0-2665"]
+                 [com.cemerick/clojurescript.test "0.3.3"]
+                 [prismatic/plumbing "0.3.5"]]
 
-                   :cljsbuild {:builds [{:id "test"
-                                         :source-paths ["src" "test"]
-                                         :compiler {:optimizations :whitespace
-                                                    :output-to "target/test.js"}}]
-                               :test-commands {"test" ["phantomjs" :runner "target/test.js"]}}}}
+  :plugins [[lein-cljsbuild "1.0.4"]
+            [com.cemerick/clojurescript.test "0.3.3"]]
+
+  :source-paths ["src" "target/classes"]
+
+  :clean-targets ["out-test/nucleus" "out-test/nucleus.js"]
+
+  :cljsbuild {:builds [{:id "test"
+                        :source-paths ["src" "test"]
+                        :compiler {:output-to "out-test/nucleus.js"
+                                   :output-dir "out-test"
+                                   :optimizations :whitespace
+                                   :cache-analysis true}}]
+
+              :test-commands {"test" ["phantomjs" :runner "out-test/nucleus.js"]}}
 
   :aliases {"test"      ["cljsbuild" "test"]
-            "cleantest" ["do" ["cljsbuild" "clean"] ["cljsbuild" "test"]]})
+            "cleantest" ["do" "clean" ["cljsbuild" "test"]]})
