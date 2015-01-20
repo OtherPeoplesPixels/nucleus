@@ -61,28 +61,47 @@
      (conj (listener-map-ks target type)
            (proto/-listener-id listener))))
 
+(defn- listen [target type listener]
+  (let [ks (listener-map-ks target type listener)]
+    (when-not (get-in @listener-map ks)
+      (let [f (proto/-listener-fn listener)
+            k (gevt/listen target (name type) f)]
+        (swap! listener-map assoc-in ks k)
+        (set! listener-count (inc listener-count))))))
+
+(defn- unlisten [target type listener]
+  (let [ks (listener-map-ks target type listener)]
+    (when-let [key (get-in @listener-map ks)]
+      (gevt/unlistenByKey key)
+      (swap! listener-map dissoc-in ks)
+      (set! listener-count (dec listener-count)))))
+
+;; See goog.events.EventLike
+(defn- event-like [event-data]
+  (cond (keyword? event-data) (name event-data)
+        (map? event-data) (clj->js event-data)
+        :else event-data))
+
 (extend-protocol proto/EventTarget
-  default ;js/EventTarget gevt/EventTarget gevt/Listenable
+
+  js/EventTarget
   (-listen [target type listener _]
-    (let [ks (listener-map-ks target type listener)]
-      (when-not (get-in @listener-map ks)
-        (let [f (proto/-listener-fn listener)
-              k (gevt/listen target (name type) f)]
-          (swap! listener-map assoc-in ks k)
-          (set! listener-count (inc listener-count))))))
-
+    (listen target type listener))
   (-unlisten [target type listener _]
-    (let [ks (listener-map-ks target type listener)]
-      (when-let [key (get-in @listener-map ks)]
-        (gevt/unlistenByKey key)
-        (swap! listener-map dissoc-in ks)
-        (set! listener-count (dec listener-count)))))
-
-  ;; See goog.events.EventLike
-  (-build-event [target event-data]
-    (cond (keyword? event-data) (name event-data)
-          (map? event-data) (clj->js event-data)
-          :else event-data))
-
+    (unlisten target type listener))
+  (-build-event [target event]
+    ;; TODO: create event from data
+    event)
   (-dispatch-event [target event]
-    (gevt/dispatchEvent target event)))
+    (.dispatchEvent target event))
+
+  EventTarget
+  (-listen [target type listener _]
+    (listen target type listener))
+  (-unlisten [target type listener _]
+    (unlisten target type listener))
+  (-build-event [target event-data]
+    (event-like event-data))
+  (-dispatch-event [target event]
+    (gevt/dispatchEvent target event))
+)
