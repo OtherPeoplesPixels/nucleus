@@ -1,10 +1,18 @@
 (ns nucleus.event
   "Abstract browser event system."
   (:require [nucleus.event.proto :as proto]
-            [nucleus.event.impl :as impl]))
+            [nucleus.event.impl :as impl])
+  (:import [goog.events Event BrowserEvent EventTarget]))
 
 
 ;; # Event
+
+(defn event
+  "Returns a new event."
+  ([type]
+     (Event. (name type)))
+  ([type target]
+     (Event. (name type) target)))
 
 (defn event? [x]
   (satisfies? proto/Event x))
@@ -18,6 +26,24 @@
   "Stop event propagation."
   [event]
   (proto/-stop-propagation event))
+
+
+;; # BrowserEvent
+
+(defn browser-event
+  "Returns a new event wrapping a native browser event."
+  ([native-event]
+     (BrowserEvent. native-event))
+  ([native-event target]
+     (BrowserEvent. native-event target)))
+
+(defn browser-event? [x]
+  (satisfies? proto/BrowserEvent x))
+
+(defn original-event
+  "Returns the wrapped native browser event."
+  [event]
+  (proto/-original-event event))
 
 
 ;; # EventListener
@@ -48,6 +74,9 @@
 
 
 ;; # EventTarget
+
+(defn event-target []
+  (EventTarget.))
 
 (defn event-target? [x]
   (satisfies? proto/EventTarget x))

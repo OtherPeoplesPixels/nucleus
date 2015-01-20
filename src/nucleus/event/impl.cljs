@@ -3,11 +3,12 @@
             [plumbing.core :refer (dissoc-in)]
             [goog.events :as gevt]
             [goog.object :as gobj]
-            [goog.string :as gstr]))
+            [goog.string :as gstr])
+  (:import [goog.events Event EventTarget BrowserEvent]))
 
 ;; # Event
 
-(extend-type goog.events.Event
+(extend-type Event
   proto/Event
   (-prevent-default [event] (.preventDefault event))
   (-stop-propagation [event] (.stopPropagation event))
@@ -26,6 +27,13 @@
        (-lookup event k))
     ([event k not-found]
        (-lookup event k not-found))))
+
+;; # BrowserEvent
+
+(extend-type BrowserEvent
+  proto/BrowserEvent
+  (-original-event [event]
+    (.getBrowserEvent event)))
 
 
 ;; # EventListener

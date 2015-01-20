@@ -4,8 +4,11 @@
   (-prevent-default [event])
   (-stop-propagation [event]))
 
-;; TODO:
-;; (defprotocol BrowserEvent)
+(defprotocol BrowserEvent
+  (-original-event [event])
+  ;;(-is-button [event])
+  ;;(-is-mouse-action-button [event])
+  )
 
 (defprotocol EventListener
   (-listener-id [this])
