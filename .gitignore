@@ -4,3 +4,6 @@
 /repl/
 /out/
 /.#
+/out-test/
+/.lein-repl-history
+/*-init.clj
